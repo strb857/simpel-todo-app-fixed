@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Todo App</title>
+</head>
+<body>
+    <h2>My Simple Todo List</h2>
+
+    <input id="taskInput" type="text" placeholder="New task">
+    <button onclick="addTask()">Add</button>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        // Fetch and display tasks
+        async function fetchTasks() {
+            const response = await fetch('/tasks');
+            const tasks = await response.json();
+
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.textContent = task.description;
+                li.onclick = () => deleteTask(task.id);
+                taskList.appendChild(li);
+            });
+        }
+
+
+        // Add a task
+        async function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const task = taskInput.value;
+
+            const response = await fetch('/tasks', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ task })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log("Added task:", result.task.description);  // ✅ This works now
+                taskInput.value = '';
+                fetchTasks();
+            } else {
+                alert("Error: " + result.message);
+            }
+        }
+
+
+
+        // Delete a task
+        async function deleteTask(id) {
+            const response = await fetch(`/tasks/${id}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log(result.message);
+                fetchTasks();
+            } else {
+                alert("Error: " + result.message);
+            }
+        }
+
+
+        // Load tasks initially
+        fetchTasks();
+    </script>
+</body>
+</html>
